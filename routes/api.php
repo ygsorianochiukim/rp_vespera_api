@@ -1,6 +1,8 @@
 <?php
 
+use App\Domain\AutomationDashboard\Models\AutomationDashboard;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\AutomationDashboardController;
 use App\Http\Controllers\Api\V1\BillingController;
 use App\Http\Controllers\Api\V1\IssuesController;
 use App\Http\Controllers\TestController;
@@ -18,6 +20,11 @@ Route::get('issues', [IssuesController::class ,'index']);
 Route::post('issues/store', [IssuesController::class , 'store']);
 Route::put('issues/updateissues', [IssuesController::class , 'update']);
 Route::delete('issues/removeissues', [IssuesController::class , 'destroy']);
+
+
+Route::apiResource('automationdashboard', AutomationDashboardController::class);
+
+
 Route::get('/user', [AuthController::class, 'user']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/logout-all', [AuthController::class, 'logoutAll']);

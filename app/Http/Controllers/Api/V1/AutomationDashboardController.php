@@ -22,9 +22,9 @@ class AutomationDashboardController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'customer_psid'             => 'required|string',
+            'customer_psid'             => 'required|string', 
             'conversation_status'       => 'required|string',
-            'conversation_updated_from' => 'required|date',
+            'conversation_updated_from' => 'required|date', 
             'conversation_updated_to'   => 'required|date',
         ]);
 

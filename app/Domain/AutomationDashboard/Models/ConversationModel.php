@@ -4,25 +4,25 @@ namespace App\Domain\AutomationDashboard\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-class AutomationDashboard extends Model
+class ConversationModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'wbs_i_transitionconversation_logs';
+    protected $table = 'wbs_i_conversation';
 
-    protected $primaryKey = 'conversation_log_id';
+    protected $primaryKey = 'conversation_id';
     public $incrementing = true;
     protected $keyType = 'int';
 
     protected $fillable = [
-        'conversation_id',
         'customer_psid',
-        'conversation_status',
-        'conversation_updated_from',
-        'conversation_updated_to',
-        'is_active',
-        'created_by',
+        'conversation_name',
+        'assigned_status',
+        'assigned_agent',
+        'status',
+        'last_message',
+        'transfer_count_bot',
+        'transfer_count_human',
         'date_created',
     ];
 }

@@ -14,14 +14,15 @@ class AutomationDashboardRepository
         return AutomationDashboard::where('is_active', true)->get();
     }
 
-    public function find(string $conversationID): ?AutomationDashboard
+    public function find(int $conversation_log_id): ?AutomationDashboard
     {
-        return AutomationDashboard::where('conversation_id', $conversationID)->first();
+        return AutomationDashboard::where('conversation_log_id', $conversation_log_id)->first();
     }
 
     public function create(CreateAutomationDashboardDTO $dto): AutomationDashboard
     {
         return AutomationDashboard::create([
+            'conversation_id'            => $dto->conversation_id,
             'customer_psid'              => $dto->customer_psid,
             'conversation_status'        => $dto->conversation_status,
             'conversation_updated_from'  => $dto->conversation_updated_from,

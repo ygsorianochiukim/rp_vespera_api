@@ -7,6 +7,7 @@ use Brick\Math\BigInteger;
 class CreateAutomationDashboardDTO
 {
     public function __construct(
+        public ?int $conversation_id,
         public ?int $customer_psid,
         public ?string $conversation_status,
         public ?string $conversation_updated_from,

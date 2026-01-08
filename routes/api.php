@@ -4,6 +4,7 @@ use App\Domain\AutomationDashboard\Models\AutomationDashboard;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AutomationDashboardController;
 use App\Http\Controllers\Api\V1\BillingController;
+use App\Http\Controllers\Api\V1\ConversationController;
 use App\Http\Controllers\Api\V1\IssuesController;
 use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,9 @@ Route::delete('issues/removeissues', [IssuesController::class , 'destroy']);
 
 
 Route::apiResource('automationdashboard', AutomationDashboardController::class);
+Route::get('conversation/logs', [ConversationController::class , 'displayHandsoff']);
+Route::apiResource('conversation', ConversationController::class);
+
 
 
 Route::get('/user', [AuthController::class, 'user']);

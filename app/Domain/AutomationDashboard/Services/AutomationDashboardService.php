@@ -19,6 +19,7 @@ class AutomationDashboardService
     public function create(array $data)
     {
         $dto = new CreateAutomationDashboardDTO(
+            conversation_id: $data['conversation_id'],
             customer_psid: $data['customer_psid'],
             conversation_status: $data['conversation_status'],
             conversation_updated_from: $data['conversation_updated_from'],

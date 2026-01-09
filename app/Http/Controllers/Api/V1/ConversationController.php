@@ -29,7 +29,7 @@ class ConversationController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'conversation_id'       => 'required|integer',
+            'conversation_id'       => 'nullable|integer',
             'customer_psid'         => 'required|integer',
             'conversation_name'     => 'nullable|string',
             'assigned_status'       => 'required|string',
@@ -63,6 +63,23 @@ class ConversationController extends Controller
         ]);
 
         $conversation = $this->service->UpdateTransferHandoff($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfer logs updated successfully.',
+            'data'    => $conversation,
+        ]);
+    }
+    public function updateTransferLogsBot(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_psid'         => 'required|integer',
+            'status'                => 'required|string',
+            'transfer_count_bot'    => 'required|integer',
+            'transfer_count_human'  => 'required|integer',
+        ]);
+
+        $conversation = $this->service->UpdateTransferHandoffBot($validated);
 
         return response()->json([
             'success' => true,

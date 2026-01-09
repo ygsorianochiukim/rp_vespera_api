@@ -12,6 +12,7 @@ class ConversationRepository
     {
         return ConversationModel::where('assigned_status', 'string')->get();
     }
+
     public function displayHumanHandsOff()
     {
         return ConversationModel::where('status','!=','open')->get();
@@ -22,20 +23,39 @@ class ConversationRepository
         return ConversationModel::where('conversation_id', $conversation_id)->first();
     }
 
+     public function countTransferBot()
+    {
+        return ConversationModel::count('status','!=','open')->get();
+    }
+
+    public function countTransferHuman()
+    {
+        return ConversationModel::count('status','!=','open')->get();
+    }
+
+    public function find_psid(int $customer_psid): ?ConversationModel
+    {
+        return ConversationModel::where('customer_psid', $customer_psid)->first();
+    }
+
     public function create(CreateConversationRecordDTO $dto): ConversationModel
     {
-        return ConversationModel::create([
-            'conversation_id'            => $dto->conversation_id,
-            'customer_psid'              => $dto->customer_psid,
-            'conversation_name'          => $dto->conversation_name,
-            'assigned_status'            => $dto->assigned_status,
-            'assigned_agent'             => $dto->assigned_agent,
-            'status'                     => $dto->status,
-            'last_message'               => $dto->last_message,
-            'transfer_count_bot'         => $dto->transfer_count_bot,
-            'transfer_count_human'       => $dto->transfer_count_human,
-            'date_created'               => now(),
-        ]);
+        return ConversationModel::updateOrCreate(
+            [
+                'conversation_id' => $dto->conversation_id,
+            ],
+            [
+                'customer_psid'        => $dto->customer_psid,
+                'conversation_name'    => $dto->conversation_name,
+                'assigned_status'      => $dto->assigned_status,
+                'assigned_agent'       => $dto->assigned_agent,
+                'status'               => $dto->status,
+                'last_message'         => $dto->last_message,
+                'transfer_count_bot'   => $dto->transfer_count_bot,
+                'transfer_count_human' => $dto->transfer_count_human,
+                'date_created'         => $dto->date_created ?? now(),
+            ]
+        );
     }
 
     public function update(ConversationModel $conversation, array $data): ConversationModel
@@ -52,5 +72,13 @@ class ConversationRepository
 
         return $conversation;
     }
+    public function updateTransBot(ConversationModel $conversation,UpdateStatusDTO $updateDTO): ConversationModel {
+        $conversation->update([
+            'status'               => $updateDTO->status,
+            'transfer_count_bot'   => $updateDTO->transfer_count_bot,
+            'transfer_count_human' => $updateDTO->transfer_count_human,
+        ]);
 
+        return $conversation;
+    }
 }

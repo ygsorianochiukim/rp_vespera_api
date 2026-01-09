@@ -40,4 +40,3 @@ class MakeRepository extends Command
     }
 
 }
-}

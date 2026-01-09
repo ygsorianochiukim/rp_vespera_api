@@ -24,7 +24,7 @@ class ConversationServices
     public function create(array $data)
     {
         $dto = new CreateConversationRecordDTO(
-            conversation_id: $data['conversation_id'],
+            conversation_id: $data['conversation_id'] ?? null,
             customer_psid: $data['customer_psid'],
             conversation_name: $data['conversation_name'],
             assigned_status: $data['assigned_status'],
@@ -53,6 +53,7 @@ class ConversationServices
         }
 
         $dto = new UpdateStatusDTO(
+            customer_psid: null,
             conversation_id: $data['conversation_id'],
             status: $data['status'],
             transfer_count_bot: $data['transfer_count_bot'],
@@ -60,5 +61,23 @@ class ConversationServices
         );
 
         return $this->repository->updateTransferLogs($conversation, $dto);
+    }
+    public function UpdateTransferHandoffBot(array $data): ConversationModel
+    {
+        $conversation = $this->repository->find_psid($data['customer_psid']);
+
+        if (!$conversation) {
+            throw new \Exception('Conversation not found.');
+        }
+
+        $dto = new UpdateStatusDTO(
+            conversation_id: null,
+            customer_psid: $data['customer_psid'],
+            status: $data['status'],
+            transfer_count_bot: $data['transfer_count_bot'],
+            transfer_count_human: $data['transfer_count_human'],
+        );
+
+        return $this->repository->updateTransBot($conversation, $dto);
     }
 }

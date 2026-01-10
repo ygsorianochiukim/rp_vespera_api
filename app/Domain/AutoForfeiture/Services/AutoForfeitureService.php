@@ -27,18 +27,18 @@ class AutoForfeitureService
         $dateGl    = isset($data['date_gl']) ? Carbon::parse($data['date_gl'])->toDateString() : null;
 
         $id = DB::connection('mysql_secondary')->table('mp_t_lotforfeiture')->insertGetId([
-            'ad_org_id'                 => $data['ad_org_id'],
+            'ad_org_id'                 => 162012,
             'doc_i_submod_id'           => $data['doc_i_submod_id'],
             'date_trans'                => $dateTrans,
             'date_gl'                   => $dateGl,
-            'docstatus'                 => $data['docstatus'] ?? 'DR',
+            'docstatus'                 => 'DR',
             'documentno'                =>  $data['documentno'],
             'mp_s_owner_id'             => $data['mp_s_owner_id'],
             'doc_t_reference_number_id' => $data['doc_t_reference_number_id'],
-            'created'                   => 'System Auto Forfeited',
+            'created'                   => 'runner_autoforfeiture',
             'date_created'              => now()->format('Y-m-d H:i:s'),
-            'updated'                   => $data['updated'] ?? null,
-            'date_updated'              => isset($data['date_updated']) ? Carbon::parse($data['date_updated'])->format('Y-m-d H:i:s') : null,
+            'updated'                   => null,
+            'date_updated'              => null,
             'is_active'                 => $data['is_active'] ?? true,
             'mp_i_owner_id'             => $data['mp_i_owner_id'],
         ]);

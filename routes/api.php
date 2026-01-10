@@ -15,16 +15,16 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 });
-Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
-    
-});
-Route::get('issues', [IssuesController::class ,'index']);
-Route::post('issues/store', [IssuesController::class , 'store']);
-Route::put('issues/updateissues', [IssuesController::class , 'update']);
-Route::delete('issues/removeissues', [IssuesController::class , 'destroy']);
+Route::prefix('v1')->middleware('auth:sanctum')->group(function () {});
+Route::get('issues', [IssuesController::class, 'index']);
+Route::post('issues/store', [IssuesController::class, 'store']);
+Route::put('issues/updateissues', [IssuesController::class, 'update']);
+Route::delete('issues/removeissues', [IssuesController::class, 'destroy']);
 
 
 
+Route::get('conversation/logs', [ConversationController::class, 'displayHandsoff']);
+Route::put('conversation/update', [ConversationController::class, 'updateTransferLogs']);
 Route::get('conversation/logs', [ConversationController::class , 'displayHandsoff']);
 Route::put('conversation/update', [ConversationController::class , 'updateTransferLogs']);
 Route::put('conversation/updateBot', [ConversationController::class , 'updateTransferLogsBot']);
@@ -44,9 +44,17 @@ Route::get('/test1', [BillingController::class, 'index']);
 Route::get('/test2', [BillingController::class, 'index1']);
 Route::get('/test3', [BillingController::class, 'index2']);
 
-
+//AUTO FORFEITE FUNCTION SAVE
 Route::get('/readsheet', [AutoForfeitureController::class, 'readGoogleSheet']);
 Route::get('/forfeiture', [AutoForfeitureController::class, 'getAgedData']);
 Route::post('/saveDocTReference', [AutoForfeitureController::class, 'saveToDocTReference']);
+Route::post('/getPreownDue', [AutoForfeitureController::class, 'getPreownDue']);
 Route::post('/saveToForfeiture', [AutoForfeitureController::class, 'saveToForfeiture']);
 Route::post('/saveToForfeitureLine', [AutoForfeitureController::class, 'saveToForfeitureLine']);
+Route::post('/saveToForfeitureSignee', [AutoForfeitureController::class, 'saveToForfeitureSignee']);
+Route::post('/saveToForfeitureSigneePR', [AutoForfeitureController::class, 'saveToForfeitureSigneePR']);
+Route::get('/updateDocTReference/{docTReferenceId}', [AutoForfeitureController::class, 'updateToDocTReference']);
+//AUTO FORFEITE FUNCTION UPDATE
+Route::post('/updateToForfeiture', [AutoForfeitureController::class, 'updateToForfeiture']);
+Route::post('/updateToPreownership', [AutoForfeitureController::class, 'updateToPreownership']);
+Route::post('/updateToLot', [AutoForfeitureController::class, 'updateToLot']);

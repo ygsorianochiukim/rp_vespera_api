@@ -16,7 +16,6 @@ class AutomationDashboard extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'conversation_id',
         'customer_psid',
         'conversation_status',
         'conversation_updated_from',

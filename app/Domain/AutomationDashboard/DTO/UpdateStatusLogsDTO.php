@@ -2,11 +2,11 @@
 
 namespace App\Domain\AutomationDashboard\DTO;
 
-class UpdateConversationDTO
+class UpdateStatusLogsDTO
 {
     public function __construct(
         public ?int $customer_psid,
-        public ?string $last_message,
+        public ?string $status,
         public ?string $date_created,
     ) {}
 }

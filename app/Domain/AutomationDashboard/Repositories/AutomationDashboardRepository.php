@@ -3,6 +3,8 @@
 namespace App\Domain\AutomationDashboard\Repositories;
 
 use App\Domain\AutomationDashboard\DTO\CreateAutomationDashboardDTO;
+use App\Domain\AutomationDashboard\DTO\UpdateConversationDTO;
+use App\Domain\AutomationDashboard\DTO\UpdateConversationLogsDTO;
 use App\Domain\AutomationDashboard\Models\AutomationDashboard;
 use Illuminate\Support\Str;
 
@@ -13,6 +15,10 @@ class AutomationDashboardRepository
     {
         return AutomationDashboard::where('is_active', true)->get();
     }
+    public function find_psid(int $customer_psid): ?AutomationDashboard
+    {
+        return AutomationDashboard::where('customer_psid', $customer_psid)->first();
+    }
 
     public function find(int $conversation_log_id): ?AutomationDashboard
     {
@@ -22,7 +28,6 @@ class AutomationDashboardRepository
     public function create(CreateAutomationDashboardDTO $dto): AutomationDashboard
     {
         return AutomationDashboard::create([
-            'conversation_id'            => $dto->conversation_id,
             'customer_psid'              => $dto->customer_psid,
             'conversation_status'        => $dto->conversation_status,
             'conversation_updated_from'  => $dto->conversation_updated_from,
@@ -38,8 +43,14 @@ class AutomationDashboardRepository
         return $conversation;
     }
 
-    public function delete(AutomationDashboard $conversation): void
-    {
-        $conversation->update(['is_active' => false]);
+    public function updateConversationLogs(AutomationDashboard $conversation,UpdateConversationLogsDTO $updateDTO): AutomationDashboard {
+        $conversation->update([
+            'customer_psid'  => $updateDTO->customer_psid,
+            'conversation_status'  => $updateDTO->conversation_status,
+            'conversation_updated_from'   => $updateDTO->conversation_updated_from,
+            'conversation_updated_to' => $updateDTO->conversation_updated_to,
+        ]);
+
+        return $conversation;
     }
 }

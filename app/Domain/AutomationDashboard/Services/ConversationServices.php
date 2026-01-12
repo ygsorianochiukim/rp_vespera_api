@@ -5,8 +5,10 @@ namespace App\Domain\AutomationDashboard\Services;
 use App\Domain\AutomationDashboard\DTO\CreateConversationRecordDTO;
 use App\Domain\AutomationDashboard\DTO\UpdateConversationDTO;
 use App\Domain\AutomationDashboard\DTO\UpdateStatusDTO;
+use App\Domain\AutomationDashboard\DTO\UpdateStatusLogsDTO;
 use App\Domain\AutomationDashboard\Models\ConversationModel;
 use App\Domain\AutomationDashboard\Repositories\ConversationRepository;
+use Carbon\Carbon;
 
 class ConversationServices
 {
@@ -95,8 +97,23 @@ class ConversationServices
         $dto = new UpdateConversationDTO(
             customer_psid: $data['customer_psid'],
             last_message: $data['last_message'],
+            date_created: now('Asia/Manila'),
         );
 
         return $this->repository->updateConversation($conversation, $dto);
+    }
+    public function updateStatusLogs(array $data): ConversationModel {
+        $conversation = $this->repository->find_psid($data['customer_psid']);
+        if (!$conversation) {
+            throw new \Exception('Conversation not found.');
+        }
+
+        $dto = new UpdateStatusLogsDTO(
+            customer_psid: $data['customer_psid'],
+            status: $data['status'],
+            date_created: now('Asia/Manila'),
+        );
+
+        return $this->repository->updateStatusLogs($conversation, $dto);
     }
 }

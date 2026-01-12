@@ -5,13 +5,14 @@ namespace App\Domain\AutomationDashboard\Repositories;
 use App\Domain\AutomationDashboard\DTO\CreateConversationRecordDTO;
 use App\Domain\AutomationDashboard\DTO\UpdateConversationDTO;
 use App\Domain\AutomationDashboard\DTO\UpdateStatusDTO;
+use App\Domain\AutomationDashboard\DTO\UpdateStatusLogsDTO;
 use App\Domain\AutomationDashboard\Models\ConversationModel;
 
 class ConversationRepository
 {
     public function getAll()
     {
-        return ConversationModel::where('assigned_status', 'string')->get();
+        return ConversationModel::all();
     }
     public function getCustomerPSID(int $customer_psid)
     {
@@ -77,6 +78,14 @@ class ConversationRepository
 
         return $conversation;
     }
+    public function updateStatusLogs(ConversationModel $conversation,UpdateStatusLogsDTO $updateDTO): ConversationModel {
+        $conversation->update([
+            'status'   => $updateDTO->status,
+            'date_created' => $updateDTO->date_created,
+        ]);
+
+        return $conversation;
+    }
     public function updateTransBot(ConversationModel $conversation,UpdateStatusDTO $updateDTO): ConversationModel {
         $conversation->update([
             'status'               => $updateDTO->status,
@@ -89,6 +98,7 @@ class ConversationRepository
     public function updateConversation(ConversationModel $conversation,UpdateConversationDTO $updateConversationDTO): ConversationModel {
         $conversation->update([
             'last_message'  => $updateConversationDTO->last_message,
+            'date_created'  => $updateConversationDTO->date_created,
         ]);
 
         return $conversation;

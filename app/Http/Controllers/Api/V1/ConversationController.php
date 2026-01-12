@@ -98,9 +98,26 @@ class ConversationController extends Controller
         $validated = $request->validate([
             'customer_psid'         => 'required|integer',
             'last_message'          => 'required|string',
+            'date_created'          => 'nullable|date',
         ]);
 
         $conversation = $this->service->updateConversation($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message Updated',
+            'data'    => $conversation,
+        ]);
+    }
+    public function updateStatusLogs(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_psid'    => 'required|integer',
+            'status'           => 'required|string',
+            'date_created'     => 'nullable|date',
+        ]);
+
+        $conversation = $this->service->updateStatusLogs($validated);
 
         return response()->json([
             'success' => true,

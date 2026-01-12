@@ -25,12 +25,15 @@ Route::delete('issues/removeissues', [IssuesController::class, 'destroy']);
 
 Route::get('conversation/logs', [ConversationController::class, 'displayHandsoff']);
 Route::put('conversation/update', [ConversationController::class, 'updateTransferLogs']);
+Route::put('conversation/updatestatuslogs', [ConversationController::class, 'updateStatusLogs']);
 Route::get('conversation/logs', [ConversationController::class , 'displayHandsoff']);
-Route::put('conversation/update', [ConversationController::class , 'updateTransferLogs']);
-Route::put('conversation/updateConversation', [ConversationController::class , 'updateTransferLogs']);
+Route::put('conversation/updateConversation', [ConversationController::class , 'updateConversation']);
 Route::put('conversation/updateBot', [ConversationController::class , 'updateTransferLogsBot']);
 Route::get('conversation/fetchpsid/{psid}', [ConversationController::class , 'fetchCustomerPSID']);
 Route::apiResource('conversation', ConversationController::class);
+
+
+Route::put('automationdashboard/updateConversation', [AutomationDashboardController::class , 'updateConversationLogs']);
 Route::apiResource('automationdashboard', AutomationDashboardController::class);
 
 

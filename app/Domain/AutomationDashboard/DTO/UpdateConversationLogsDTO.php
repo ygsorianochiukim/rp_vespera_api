@@ -2,9 +2,7 @@
 
 namespace App\Domain\AutomationDashboard\DTO;
 
-use Brick\Math\BigInteger;
-
-class CreateAutomationDashboardDTO
+class UpdateConversationLogsDTO
 {
     public function __construct(
         public ?int $conversation_log_id,
@@ -12,7 +10,5 @@ class CreateAutomationDashboardDTO
         public ?string $conversation_status,
         public ?string $conversation_updated_from,
         public ?string $conversation_updated_to,
-        public int $created_by,
-        public bool $is_active = true,
     ) {}
 }

@@ -22,7 +22,6 @@ class AutomationDashboardController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'conversation_id'             => 'required|integer', 
             'customer_psid'               => 'required|integer', 
             'conversation_status'         => 'required|string',
             'conversation_updated_from'   => 'required|date', 
@@ -42,9 +41,21 @@ class AutomationDashboardController extends Controller
         );
     }
 
-    public function destroy(int $conversation_id)
+    public function updateConversationLogs(Request $request)
     {
-        $this->service->delete($conversation_id);
-        return response()->json(['message' => 'Issue deleted']);
+        $validated = $request->validate([
+            'customer_psid'         => 'required|integer',
+            'conversation_status'         => 'required|string',
+            'conversation_updated_from'   => 'required|date',
+            'conversation_updated_to'     => 'nullable|date',
+        ]);
+
+        $conversation = $this->service->updateConversationLogger($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message Updated',
+            'data'    => $conversation,
+        ]);
     }
 }

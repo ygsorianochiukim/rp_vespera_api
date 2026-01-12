@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('wbs_i_transitionconversation_logs', function (Blueprint $table) {
             $table->id('conversation_log_id');
-            $table->bigInteger('conversation_id')->nullable();
             $table->bigInteger('customer_psid');
             $table->string('conversation_status');
             $table->date('conversation_updated_from');

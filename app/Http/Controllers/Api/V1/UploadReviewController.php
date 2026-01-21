@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1;
-
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Domain\UploadReview\Services\UploadReviewService;
@@ -15,83 +14,87 @@ class UploadReviewController extends Controller
 {
     public function __construct(private UploadReviewService $service) {}
 
-    public function submit(Request $request)
-    {
-        $request->validate([
-            'document_no' => 'required|string',
-            'reviewer_name' => 'required|string',
-            'q1' => 'required|string',
-            'q2' => 'required|string',
-            'q3' => 'required|string',
-            'q4' => 'required|string',
-            'q5' => 'required|string',
-            'q6' => 'required|string',
-            'fb_username' => 'nullable|string',
-            'google_username' => 'nullable|string',
-            'fb_screenshot' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'google_screenshot' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-        ]);
+public function submit(Request $request)
+{
+    // 1️⃣ Validation
+    $request->validate([
+        'document_no' => 'required|string',
+        'reviewer_name' => 'required|string|max:255',
+        'contact_number' => 'required|string|max:255',
+        'fb_screenshot' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+        'google_screenshot' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+        'private_feedback' => 'nullable|string',
+        'others' => 'nullable|string',
+    ]);
 
-        // Check duplicate reviewer for the same document
+    // 2️⃣ Check max reviews
+    $reviewCount = UploadReview::where('document_no', $request->document_no)->count();
+        if ($reviewCount >= 4) {
+            return response()->json([
+                'code' => 'MAX_REVIEWS',
+                'message' => 'This service already reached the maximum number of reviews.'
+            ], 403);
+        }
+
+        if (!$request->hasFile('fb_screenshot') && !$request->hasFile('google_screenshot')) {
+            return response()->json([
+                'code' => 'SCREENSHOT_REQUIRED',
+                'message' => 'At least one screenshot (Facebook or Google) is required.'
+            ], 422);
+        }
+
         if (UploadReview::where('document_no', $request->document_no)
             ->where('reviewer_name', $request->reviewer_name)
             ->exists()) {
             return response()->json([
-                'message' => 'This reviewer has already submitted a review for this document.'
+                'code' => 'DUPLICATE_REVIEW',
+                'message' => 'You have already submitted feedback for this service.'
             ], 422);
         }
 
-        // Check fb_username uniqueness per document
-        if ($request->fb_username && UploadReview::where('document_no', $request->document_no)
-            ->where('fb_username', $request->fb_username)
-            ->exists()) {
-            return response()->json([
-                'message' => 'This Facebook username has already been used for this document.'
-            ], 422);
-        }
 
-        // Check google_username uniqueness per document
-        if ($request->google_username && UploadReview::where('document_no', $request->document_no)
-            ->where('google_username', $request->google_username)
-            ->exists()) {
-            return response()->json([
-                'message' => 'This Google username has already been used for this document.'
-            ], 422);
-        }
+    // 5️⃣ File uploads
+    $fbPath = $request->file('fb_screenshot')
+        ? $request->file('fb_screenshot')->store('reviews', 'public')
+        : null;
 
-        $fbPath = $request->file('fb_screenshot')
-            ? $request->file('fb_screenshot')->store('reviews', 'public')
-            : null;
+    $googlePath = $request->file('google_screenshot')
+        ? $request->file('google_screenshot')->store('reviews', 'public')
+        : null;
 
-        $googlePath = $request->file('google_screenshot')
-            ? $request->file('google_screenshot')->store('reviews', 'public')
-            : null;
+    $fbUrl = $fbPath ? url('/storage/' . $fbPath) : null;
+    $googleUrl = $googlePath ? url('/storage/' . $googlePath) : null;
 
-        // Build FULL public URLs (THIS IS WHAT YOU WANT)
-        $fbUrl = $fbPath ? url('/storage/' . $fbPath) : null;
-        $googleUrl = $googlePath ? url('/storage/' . $googlePath) : null;
-
-        // Save to database
-        UploadReview::create([
-            'document_no'       => $request->document_no,
-            'reviewer_name'     => $request->reviewer_name,
-            'q1'                => $request->q1,
-            'q2'                => $request->q2,
-            'q3'                => $request->q3,
-            'q4'                => $request->q4,
-            'q5'                => $request->q5,
-            'q6'                => $request->q6,
-            'others'            => $request->others,
-            'fb_username'       => $request->fb_username,
-            'google_username'   => $request->google_username,
-            'fb_screenshot'     => $fbUrl,        
-            'google_screenshot' => $googleUrl,    
-            'submitted_at'      => now(),
-            'is_valid'          => true,
-        ]);
-
-        return response()->json(['message' => 'Review submitted successfully.']);
+        if (!$request->hasFile('fb_screenshot') && !$request->hasFile('google_screenshot')) {
+        return response()->json([
+            'message' => 'At least one screenshot (Facebook or Google) is required.'
+        ], 422);
     }
+
+                // 6️⃣ Save review
+            UploadReview::create([
+                'document_no'             => $request->input('document_no'),
+                'reviewer_name'           => $request->input('reviewer_name'),
+                'contact_number'          => $request->input('contact_number'),
+
+                // ✅ Selected questions from Angular
+                'selected_public_question'  => $request->input('selected_public_question'),
+                'selected_private_question' => $request->input('selected_private_question'),
+
+                'private_feedback'        => $request->input('private_faq_answer'), // Angular key
+                'others'                  => $request->input('privateOthers'),      // Angular key
+                'fb_screenshot'           => $fbUrl,
+                'google_screenshot'       => $googleUrl,
+                'submitted_at'            => now(),
+                'is_valid'                => true,
+            ]);
+
+
+
+    return response()->json(['message' => 'Review submitted successfully.']);
+}
+
+
 
 
 
@@ -140,5 +143,22 @@ class UploadReviewController extends Controller
 
         return response()->json($interments);
     }
+
+
+
+    public function getByDocumentNo($document_no)
+    {
+        $reviews = UploadReview::where('document_no', $document_no)->get();
+
+        if ($reviews->isEmpty()) {
+            return response()->json([
+                'message' => 'No reviews found for this document number'
+            ], 404);
+        }
+
+        return response()->json($reviews, 200);
+    }
+
+
 
 }

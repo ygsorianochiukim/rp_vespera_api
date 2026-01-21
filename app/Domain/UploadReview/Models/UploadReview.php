@@ -12,15 +12,11 @@ class UploadReview extends Model
 protected $fillable = [
     'document_no',
     'reviewer_name',
-    'q1',
-    'q2',
-    'q3',
-    'q4',
-    'q5',
-    'q6',
+    'contact_number',
+    'selected_public_question',   // ✅ new
+    'selected_private_question',  // ✅ new
+    'private_feedback',
     'others',
-    'fb_username',
-    'google_username',
     'fb_screenshot',
     'google_screenshot',
     'submitted_at',
@@ -28,8 +24,4 @@ protected $fillable = [
 ];
 
 
-    protected $casts = [
-        'submitted_at' => 'datetime',
-        'is_valid' => 'boolean'
-    ];
 }

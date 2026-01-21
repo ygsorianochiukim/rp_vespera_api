@@ -75,3 +75,7 @@ Route::post('/review', [UploadReviewController::class, 'submit']);
 
 Route::get('/interments/{occupant}', [UploadReviewController::class, 'getInterments']);
 
+//FETCH REVIEWS
+Route::get('/upload-reviews/document/{document_no}',[UploadReviewController::class, 'getByDocumentNo']);
+
+

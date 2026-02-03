@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: |
             set -e
-            echo "🚀 Starting STAGING deployment..."
+            echo "🚀 Starting STAGING dddddeployment..."
 
             APP_PATH="/var/www/staging"
 

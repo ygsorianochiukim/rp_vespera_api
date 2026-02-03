@@ -46,9 +46,9 @@ jobs:
 
             # Export secrets for safer usage
             export APP_URL="${{ secrets.STAGING_APP_URL }}"
-            export DB_DATABASE="${{ secrets.DB_NAME }}"
-            export DB_USERNAME="${{ secrets.DB_USERNAME }}"
-            export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+            export DB_DATABASE="${{ secrets.STAGING_DB_NAME }}"
+            export DB_USERNAME="${{ secrets.STAGING_USERNAME }}"
+            export DB_PASSWORD="${{ secrets.STAGING_PASSWORD }}"
 
             sed -i "s|^APP_ENV=.*|APP_ENV=staging|" .env
             sed -i "s|^APP_DEBUG=.*|APP_DEBUG=false|" .env

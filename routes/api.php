@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\BillingController;
 use App\Http\Controllers\Api\V1\ChatHistoryController;
 use App\Http\Controllers\Api\V1\ConversationController;
 use App\Http\Controllers\Api\V1\IssuesController;
+use App\Http\Controllers\Api\V1\PaymentModuleController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\Api\V1\UploadReviewController;
 use Illuminate\Support\Facades\Route;
@@ -69,6 +70,12 @@ Route::get('/updateDocTReference/{docTReferenceId}', [AutoForfeitureController::
 Route::post('/updateToForfeiture', [AutoForfeitureController::class, 'updateToForfeiture']);
 Route::post('/updateToPreownership', [AutoForfeitureController::class, 'updateToPreownership']);
 Route::post('/updateToLot', [AutoForfeitureController::class, 'updateToLot']);
+
+//PAYMENT Module
+Route::post('/verifyName', [PaymentModuleController::class, 'verifyBparName']);
+Route::post('/verify-otp', [PaymentModuleController::class, 'sendOtp']);
+Route::post('/checkOTP', [PaymentModuleController::class, 'verifyOtp']);
+Route::get('/checkLots/{bparId}', [PaymentModuleController::class, 'getOwnerLot']);
 
 //UPLOAD REVIEW SAVE
 Route::post('/review', [UploadReviewController::class, 'submit']);

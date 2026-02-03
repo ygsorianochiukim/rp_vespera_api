@@ -1,0 +1,108 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to OVH Staging
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -e
+            echo "🚀 Starting STAGING deployment..."
+
+            APP_PATH="/var/www/staging"
+
+            if [ ! -d "$APP_PATH/.git" ]; then
+              echo "📥 Cloning repository..."
+              rm -rf $APP_PATH
+              git clone https://github.com/rp-vespera/rp_vespera_api.git $APP_PATH
+            fi
+
+            cd $APP_PATH
+
+            echo "🔄 Syncing develop branch..."
+            git fetch origin
+            git checkout develop
+            git reset --hard origin/develop
+            git clean -fd
+
+            echo "📦 Installing Composer dependencies..."
+            composer install \
+              --no-dev \
+              --no-interaction \
+              --prefer-dist \
+              --optimize-autoloader
+
+            echo "⚙️ Preparing environment..."
+            if [ ! -f .env ]; then
+              cp .env.example .env
+            fi
+
+            # ===============================
+            # APPLICATION
+            # ===============================
+            sed -i "s|^APP_ENV=.*|APP_ENV=staging|" .env
+            sed -i "s|^APP_DEBUG=.*|APP_DEBUG=false|" .env
+            sed -i "s|^APP_URL=.*|APP_URL=${{ secrets.STAGING_APP_URL }}|" .env
+
+            # ===============================
+            # PRIMARY DATABASE (DB1)
+            # MIGRATIONS ALLOWED
+            # ===============================
+            sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
+            sed -i "s|^DB_HOST=.*|DB_HOST=${{ secrets.DB_HOST }}|" .env
+            sed -i "s|^DB_PORT=.*|DB_PORT=${{ secrets.DB_PORT }}|" .env
+            sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${{ secrets.DB_NAME }}|" .env
+            sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${{ secrets.DB_USERNAME }}|" .env
+            sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|" .env
+
+            # ===============================
+            # SECONDARY DATABASE (DB2)
+            # READ-ONLY / REFERENCE ONLY
+            # ===============================
+            sed -i "s|^DB2_HOST=.*|DB2_HOST=${{ secrets.DB2_HOST }}|" .env || echo "DB2_HOST=${{ secrets.DB2_HOST }}" >> .env
+            sed -i "s|^DB2_PORT=.*|DB2_PORT=${{ secrets.DB2_PORT }}|" .env || echo "DB2_PORT=${{ secrets.DB2_PORT }}" >> .env
+            sed -i "s|^DB2_DATABASE=.*|DB2_DATABASE=${{ secrets.DB2_NAME }}|" .env || echo "DB2_DATABASE=${{ secrets.DB2_NAME }}" >> .env
+            sed -i "s|^DB2_USERNAME=.*|DB2_USERNAME=${{ secrets.DB2_USERNAME }}|" .env || echo "DB2_USERNAME=${{ secrets.DB2_USERNAME }}" >> .env
+            sed -i "s|^DB2_PASSWORD=.*|DB2_PASSWORD=${{ secrets.DB2_PASSWORD }}|" .env || echo "DB2_PASSWORD=${{ secrets.DB2_PASSWORD }}" >> .env
+
+            # ===============================
+            # REPLICA-SAFE DRIVERS
+            # ===============================
+            sed -i "s|^SESSION_DRIVER=.*|SESSION_DRIVER=file|" .env
+            sed -i "s|^CACHE_STORE=.*|CACHE_STORE=file|" .env
+            sed -i "s|^QUEUE_CONNECTION=.*|QUEUE_CONNECTION=sync|" .env
+
+            sed -i "s|^SESSION_DOMAIN=.*|SESSION_DOMAIN=staging.rp-vespera.cloud|" .env
+
+            echo "🔑 Ensuring APP_KEY exists..."
+            if ! grep -q "^APP_KEY=base64:" .env; then
+              php artisan key:generate --force
+            fi
+
+            echo "🧹 FULL cache reset..."
+            php artisan optimize:clear
+            rm -f bootstrap/cache/*.php
+
+            echo "🔐 Fixing permissions..."
+            chmod -R ug+rwX storage bootstrap/cache
+
+            echo "⚡ Rebuilding caches..."
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "✅ STAGING deployment finished successfully!"

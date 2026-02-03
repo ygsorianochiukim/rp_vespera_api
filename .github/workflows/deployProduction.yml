@@ -1,0 +1,112 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to OVH Production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+            echo "🚀 Starting PRODUCTION deployment..."
+
+            APP_PATH="/var/www/production"
+
+            # ===============================
+            # FIRST-TIME CLONE
+            # ===============================
+            if [ ! -d "$APP_PATH/.git" ]; then
+              echo "📥 Cloning repository..."
+              rm -rf $APP_PATH
+              git clone https://github.com/rp-vespera/rp_vespera_api.git $APP_PATH
+            fi
+
+            cd $APP_PATH
+
+            echo "🔄 Syncing main branch..."
+            git fetch origin
+            git checkout main
+            git reset --hard origin/main
+            git clean -fd
+
+            echo "📦 Installing Composer dependencies (no dev)..."
+            composer install \
+              --no-dev \
+              --no-interaction \
+              --prefer-dist \
+              --optimize-autoloader
+
+            echo "⚙️ Preparing environment..."
+            if [ ! -f .env ]; then
+              cp .env.example .env
+            fi
+
+            # ===============================
+            # APPLICATION
+            # ===============================
+            sed -i "s|^APP_ENV=.*|APP_ENV=production|" .env
+            sed -i "s|^APP_DEBUG=.*|APP_DEBUG=false|" .env
+            sed -i "s|^APP_URL=.*|APP_URL=${{ secrets.PROD_APP_URL }}|" .env
+
+            # ===============================
+            # PRIMARY DATABASE (DB1)
+            # MIGRATIONS ALLOWED
+            # ===============================
+            sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
+            sed -i "s|^DB_HOST=.*|DB_HOST=${{ secrets.DB_HOST }}|" .env
+            sed -i "s|^DB_PORT=.*|DB_PORT=${{ secrets.DB_PORT }}|" .env
+            sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${{ secrets.DB_NAME }}|" .env
+            sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${{ secrets.DB_USERNAME }}|" .env
+            sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|" .env
+
+            # ===============================
+            # SECONDARY DATABASE (DB2)
+            # READ-ONLY / REFERENCE
+            # ===============================
+            sed -i "s|^DB2_HOST=.*|DB2_HOST=${{ secrets.DB2_HOST }}|" .env || echo "DB2_HOST=${{ secrets.DB2_HOST }}" >> .env
+            sed -i "s|^DB2_PORT=.*|DB2_PORT=${{ secrets.DB2_PORT }}|" .env || echo "DB2_PORT=${{ secrets.DB2_PORT }}" >> .env
+            sed -i "s|^DB2_DATABASE=.*|DB2_DATABASE=${{ secrets.DB2_NAME }}|" .env || echo "DB2_DATABASE=${{ secrets.DB2_NAME }}" >> .env
+            sed -i "s|^DB2_USERNAME=.*|DB2_USERNAME=${{ secrets.DB2_USERNAME }}|" .env || echo "DB2_USERNAME=${{ secrets.DB2_USERNAME }}" >> .env
+            sed -i "s|^DB2_PASSWORD=.*|DB2_PASSWORD=${{ secrets.DB2_PASSWORD }}|" .env || echo "DB2_PASSWORD=${{ secrets.DB2_PASSWORD }}" >> .env
+
+            # ===============================
+            # PRODUCTION-SAFE DRIVERS
+            # ===============================
+            sed -i "s|^SESSION_DRIVER=.*|SESSION_DRIVER=file|" .env
+            sed -i "s|^CACHE_STORE=.*|CACHE_STORE=file|" .env
+            sed -i "s|^QUEUE_CONNECTION=.*|QUEUE_CONNECTION=sync|" .env
+
+            echo "🔑 Ensuring APP_KEY exists..."
+            if ! grep -q "^APP_KEY=base64:" .env; then
+              php artisan key:generate --force
+            fi
+
+            echo "🧹 Clearing caches..."
+            php artisan optimize:clear
+            rm -f bootstrap/cache/*.php
+
+            echo "🗄️ Running migrations (PRIMARY DB ONLY)..."
+            php artisan migrate --force
+
+            echo "🔐 Fixing permissions..."
+            chmod -R ug+rwX storage bootstrap/cache
+
+            echo "⚡ Rebuilding caches..."
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "✅ PRODUCTION deployment finished successfully!"

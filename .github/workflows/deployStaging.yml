@@ -60,24 +60,23 @@ jobs:
 
             # ===============================
             # PRIMARY DATABASE (DB1)
-            # MIGRATIONS ALLOWED
             # ===============================
             sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
-            sed -i "s|^DB_HOST=.*|DB_HOST=${{ secrets.DB_HOST }}|" .env
-            sed -i "s|^DB_PORT=.*|DB_PORT=${{ secrets.DB_PORT }}|" .env
-            sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${{ secrets.DB_NAME }}|" .env
-            sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${{ secrets.DB_USERNAME }}|" .env
-            sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|" .env
+            sed -i "s|^DB_HOST=.*|DB_HOST=${{ secrets.STAGING_HOST }}|" .env
+            sed -i "s|^DB_PORT=.*|DB_PORT=${{ secrets.STAGING_DB_PORT }}|" .env
+            sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${{ secrets.STAGING_DB_NAME }}|" .env
+            sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${{ secrets.STAGING_USERNAME }}|" .env
+            sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${{ secrets.STAGING_PASSWORD }}|" .env
 
             # ===============================
             # SECONDARY DATABASE (DB2)
-            # READ-ONLY / REFERENCE ONLY
+            # READ-ONLY / REFERENCE
             # ===============================
-            sed -i "s|^DB2_HOST=.*|DB2_HOST=${{ secrets.DB2_HOST }}|" .env || echo "DB2_HOST=${{ secrets.DB2_HOST }}" >> .env
-            sed -i "s|^DB2_PORT=.*|DB2_PORT=${{ secrets.DB2_PORT }}|" .env || echo "DB2_PORT=${{ secrets.DB2_PORT }}" >> .env
-            sed -i "s|^DB2_DATABASE=.*|DB2_DATABASE=${{ secrets.DB2_NAME }}|" .env || echo "DB2_DATABASE=${{ secrets.DB2_NAME }}" >> .env
-            sed -i "s|^DB2_USERNAME=.*|DB2_USERNAME=${{ secrets.DB2_USERNAME }}|" .env || echo "DB2_USERNAME=${{ secrets.DB2_USERNAME }}" >> .env
-            sed -i "s|^DB2_PASSWORD=.*|DB2_PASSWORD=${{ secrets.DB2_PASSWORD }}|" .env || echo "DB2_PASSWORD=${{ secrets.DB2_PASSWORD }}" >> .env
+            sed -i "s|^DB2_HOST=.*|DB2_HOST=${{ secrets.STAGING_HOST }}|" .env || echo "DB2_HOST=${{ secrets.STAGING_HOST }}" >> .env
+            sed -i "s|^DB2_PORT=.*|DB2_PORT=${{ secrets.STAGING_DB_PORT2 }}|" .env || echo "DB2_PORT=${{ secrets.STAGING_DB_PORT2 }}" >> .env
+            sed -i "s|^DB2_DATABASE=.*|DB2_DATABASE=${{ secrets.STAGING_DB_NAME2 }}|" .env || echo "DB2_DATABASE=${{ secrets.STAGING_DB_NAME2 }}" >> .env
+            sed -i "s|^DB2_USERNAME=.*|DB2_USERNAME=${{ secrets.STAGING_USERNAME2 }}|" .env || echo "DB2_USERNAME=${{ secrets.STAGING_USERNAME2 }}" >> .env
+            sed -i "s|^DB2_PASSWORD=.*|DB2_PASSWORD=${{ secrets.STAGING_PASSWORD2 }}|" .env || echo "DB2_PASSWORD=${{ secrets.STAGING_PASSWORD2 }}" >> .env
 
             # ===============================
             # REPLICA-SAFE DRIVERS
@@ -93,12 +92,9 @@ jobs:
               php artisan key:generate --force
             fi
 
-            echo "🧹 FULL cache reset..."
+            echo "🧹 Clearing caches..."
             php artisan optimize:clear
             rm -f bootstrap/cache/*.php
-
-            echo "🔐 Fixing permissions..."
-            chmod -R ug+rwX storage bootstrap/cache
 
             echo "⚡ Rebuilding caches..."
             php artisan config:cache

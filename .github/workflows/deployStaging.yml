@@ -23,14 +23,15 @@ jobs:
             set -e
             echo "🚀 Starting STAGING deployment..."
 
+            # Clone if missing
             if [ ! -d /var/www/staging/.git ]; then
               rm -rf /var/www/staging
               git clone https://github.com/rp-vespera/rp_vespera_api.git /var/www/staging
             fi
 
             cd /var/www/staging
-            
-            git remote prune origin
+
+            # Reset to develop
             git fetch origin
             git checkout develop
             git reset --hard origin/develop
@@ -44,7 +45,9 @@ jobs:
               cp .env.example .env
             fi
 
-            # Export secrets for safer usage
+            # ==========================
+            # PRIMARY DATABASE (DB1)
+            # ==========================
             export APP_URL="${{ secrets.STAGING_APP_URL }}"
             export DB_HOST="${{ secrets.STAGING_DB_HOST }}"
             export DB_PORT="${{ secrets.STAGING_DB_PORT }}"
@@ -52,12 +55,32 @@ jobs:
             export DB_USERNAME="${{ secrets.STAGING_USERNAME }}"
             export DB_PASSWORD="${{ secrets.STAGING_PASSWORD }}"
 
+            # ==========================
+            # SECONDARY DATABASE (DB2)
+            # (NO MIGRATIONS)
+            # ==========================
+            export DB2_HOST="${{ secrets.STAGING_DB2_HOST }}"
+            export DB2_PORT="${{ secrets.STAGING_DB2_PORT }}"
+            export DB2_DATABASE="${{ secrets.STAGING_DB2_NAME }}"
+            export DB2_USERNAME="${{ secrets.STAGING_DB2_USERNAME }}"
+            export DB2_PASSWORD="${{ secrets.STAGING_DB2_PASSWORD }}"
+
+            # Update .env safely
             sed -i "s|^APP_ENV=.*|APP_ENV=staging|" .env
             sed -i "s|^APP_DEBUG=.*|APP_DEBUG=false|" .env
             sed -i "s|^APP_URL=.*|APP_URL=${APP_URL}|" .env
+
+            sed -i "s|^DB_HOST=.*|DB_HOST=${DB_HOST}|" .env
+            sed -i "s|^DB_PORT=.*|DB_PORT=${DB_PORT}|" .env
             sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${DB_DATABASE}|" .env
             sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME}|" .env
             sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD}|" .env
+
+            sed -i "s|^DB2_HOST=.*|DB2_HOST=${DB2_HOST}|" .env
+            sed -i "s|^DB2_PORT=.*|DB2_PORT=${DB2_PORT}|" .env
+            sed -i "s|^DB2_DATABASE=.*|DB2_DATABASE=${DB2_DATABASE}|" .env
+            sed -i "s|^DB2_USERNAME=.*|DB2_USERNAME=${DB2_USERNAME}|" .env
+            sed -i "s|^DB2_PASSWORD=.*|DB2_PASSWORD=${DB2_PASSWORD}|" .env
 
             echo "🔑 Ensuring APP_KEY exists..."
             if ! grep -q "^APP_KEY=" .env || grep -q "^APP_KEY=$" .env; then
@@ -68,7 +91,7 @@ jobs:
             php artisan config:clear
             php artisan config:cache
 
-            echo "🗄️ Running migrations..." 
+            echo "🗄️ Running migrations (PRIMARY DB ONLY)..."
             php artisan migrate --force
 
             echo "⚡ Optimizing application..."

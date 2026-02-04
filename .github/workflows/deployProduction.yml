@@ -70,10 +70,12 @@ jobs:
             export DB_PORT="${{ secrets.PRODUCTION_DB_PORT }}"
             export DB_USERNAME="${{ secrets.PRODUCTION_USERNAME }}"
             export DB_PASSWORD="${{ secrets.PRODUCTION_PASSWORD }}"
+            export DB_DATABASE="${{ secrets.PRODUCTION_DB_NAME }}"
 
             sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
             sed -i "s|^DB_HOST=.*|DB_HOST=${DB_HOST}|" .env
             sed -i "s|^DB_PORT=.*|DB_PORT=${DB_PORT}|" .env
+            sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${DB_DATABASE}|" .env
             sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME}|" .env
             sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=\"${DB_PASSWORD}\"|" .env
 
@@ -85,12 +87,17 @@ jobs:
             export DB2_PORT="${{ secrets.PRODUCTION_DB_PORT2 }}"
             export DB2_USERNAME="${{ secrets.PRODUCTION_USERNAME2 }}"
             export DB2_PASSWORD="${{ secrets.PRODUCTION_PASSWORD2 }}"
+            export DB2_DATABASE="${{ secrets.PRODUCTION_DB_NAME2 }}"
 
             echo "⚙️ Writing DB2 credentials..."
 
             grep -q "^DB2_HOST=" .env \
               && sed -i "s|^DB2_HOST=.*|DB2_HOST=${DB2_HOST}|" .env \
               || echo "DB2_HOST=${DB2_HOST}" >> .env
+
+            grep -q "^DB2_DATABASE=" .env \
+              && sed -i "s|^DB2_DATABASE=.*|DB2_DATABASE=${DB2_DATABASE}|" .env \
+              || echo "DB2_DATABASE=${DB2_DATABASE}" >> .env
 
             grep -q "^DB2_PORT=" .env \
               && sed -i "s|^DB2_PORT=.*|DB2_PORT=${DB2_PORT}|" .env \

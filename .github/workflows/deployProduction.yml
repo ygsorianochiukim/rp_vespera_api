@@ -25,9 +25,9 @@ jobs:
 
             APP_PATH="/var/www/production"
 
-            # ===============================
+            # ==========================
             # FIRST-TIME CLONE
-            # ===============================
+            # ==========================
             if [ ! -d "$APP_PATH/.git" ]; then
               echo "📥 Cloning repository..."
               rm -rf $APP_PATH
@@ -42,7 +42,7 @@ jobs:
             git reset --hard origin/main
             git clean -fd
 
-            echo "📦 Installing Composer dependencies (no dev)..."
+            echo "📦 Installing dependencies (production)..."
             composer install \
               --no-dev \
               --no-interaction \
@@ -54,34 +54,59 @@ jobs:
               cp .env.example .env
             fi
 
-            # ===============================
+            # ==========================
             # APPLICATION
-            # ===============================
+            # ==========================
+            export APP_URL="${{ secrets.PRODUCTION_APP_URL }}"
+
             sed -i "s|^APP_ENV=.*|APP_ENV=production|" .env
             sed -i "s|^APP_DEBUG=.*|APP_DEBUG=false|" .env
-            sed -i "s|^APP_URL=.*|APP_URL=${{ secrets.PRODUCTION_APP_URL }}|" .env
+            sed -i "s|^APP_URL=.*|APP_URL=${APP_URL}|" .env
 
-            # ===============================
+            # ==========================
             # PRIMARY DATABASE (DB1)
-            # ===============================
-            sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
-            sed -i "s|^DB_HOST=.*|DB_HOST=${{ secrets.PRODUCTION_HOST }}|" .env
-            sed -i "s|^DB_PORT=.*|DB_PORT=${{ secrets.PRODUCTION_DB_PORT }}|" .env
-            sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${{ secrets.PRODUCTION_USERNAME }}|" .env
-            sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${{ secrets.PRODUCTION_PASSWORD }}|" .env
+            # ==========================
+            export DB_HOST="${{ secrets.PRODUCTION_HOST }}"
+            export DB_PORT="${{ secrets.PRODUCTION_DB_PORT }}"
+            export DB_USERNAME="${{ secrets.PRODUCTION_USERNAME }}"
+            export DB_PASSWORD="${{ secrets.PRODUCTION_PASSWORD }}"
 
-            # ===============================
+            sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
+            sed -i "s|^DB_HOST=.*|DB_HOST=${DB_HOST}|" .env
+            sed -i "s|^DB_PORT=.*|DB_PORT=${DB_PORT}|" .env
+            sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME}|" .env
+            sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=\"${DB_PASSWORD}\"|" .env
+
+            # ==========================
             # SECONDARY DATABASE (DB2)
             # READ-ONLY / REFERENCE
-            # ===============================
-            sed -i "s|^DB2_HOST=.*|DB2_HOST=${{ secrets.PRODUCTION_HOST }}|" .env || echo "DB2_HOST=${{ secrets.PRODUCTION_HOST }}" >> .env
-            sed -i "s|^DB2_PORT=.*|DB2_PORT=${{ secrets.PRODUCTION_DB_PORT2 }}|" .env || echo "DB2_PORT=${{ secrets.PRODUCTION_DB_PORT2 }}" >> .env
-            sed -i "s|^DB2_USERNAME=.*|DB2_USERNAME=${{ secrets.PRODUCTION_USERNAME }}|" .env || echo "DB2_USERNAME=${{ secrets.PRODUCTION_USERNAME }}" >> .env
-            sed -i "s|^DB2_PASSWORD=.*|DB2_PASSWORD=${{ secrets.PRODUCTION_PASSWORD }}|" .env || echo "DB2_PASSWORD=${{ secrets.PRODUCTION_PASSWORD }}" >> .env
+            # ==========================
+            export DB2_HOST="${{ secrets.PRODUCTION_HOST }}"
+            export DB2_PORT="${{ secrets.PRODUCTION_DB_PORT2 }}"
+            export DB2_USERNAME="${{ secrets.PRODUCTION_USERNAME }}"
+            export DB2_PASSWORD="${{ secrets.PRODUCTION_PASSWORD }}"
 
-            # ===============================
+            echo "⚙️ Writing DB2 credentials..."
+
+            grep -q "^DB2_HOST=" .env \
+              && sed -i "s|^DB2_HOST=.*|DB2_HOST=${DB2_HOST}|" .env \
+              || echo "DB2_HOST=${DB2_HOST}" >> .env
+
+            grep -q "^DB2_PORT=" .env \
+              && sed -i "s|^DB2_PORT=.*|DB2_PORT=${DB2_PORT}|" .env \
+              || echo "DB2_PORT=${DB2_PORT}" >> .env
+
+            grep -q "^DB2_USERNAME=" .env \
+              && sed -i "s|^DB2_USERNAME=.*|DB2_USERNAME=${DB2_USERNAME}|" .env \
+              || echo "DB2_USERNAME=${DB2_USERNAME}" >> .env
+
+            grep -q "^DB2_PASSWORD=" .env \
+              && sed -i "s|^DB2_PASSWORD=.*|DB2_PASSWORD=\"${DB2_PASSWORD}\"|" .env \
+              || echo "DB2_PASSWORD=\"${DB2_PASSWORD}\"" >> .env
+
+            # ==========================
             # PRODUCTION-SAFE DRIVERS
-            # ===============================
+            # ==========================
             sed -i "s|^SESSION_DRIVER=.*|SESSION_DRIVER=file|" .env
             sed -i "s|^CACHE_STORE=.*|CACHE_STORE=file|" .env
             sed -i "s|^QUEUE_CONNECTION=.*|QUEUE_CONNECTION=sync|" .env

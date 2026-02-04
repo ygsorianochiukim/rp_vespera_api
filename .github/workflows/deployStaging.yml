@@ -59,7 +59,7 @@ jobs:
             export DB2_HOST="${{ secrets.STAGING_DB_HOST2 }}"
             export DB2_PORT="${{ secrets.STAGING_DB_PORT2 }}"
             export DB2_DATABASE="${{ secrets.STAGING_DB_NAME2 }}"
-            export DB2_USERNAME="${{ secrets.STAGING_USERNAME }}"
+            export DB2_USERNAME="${{ secrets.STAGING_USERNAME2 }}"
             export DB2_PASSWORD="${{ secrets.STAGING_PASSWORD2 }}"
 
             # --------------------------

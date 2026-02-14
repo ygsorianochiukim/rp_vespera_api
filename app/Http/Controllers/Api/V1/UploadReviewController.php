@@ -54,16 +54,16 @@ public function submit(Request $request)
 
 
     // 5️⃣ File uploads
-    $fbPath = $request->file('fb_screenshot')
-        ? $request->file('fb_screenshot')->store('reviews', 'public')
-        : null;
+        $fbPath = $request->file('fb_screenshot')
+            ? $request->file('fb_screenshot')->move('', 'reviews')
+            : null;
 
-    $googlePath = $request->file('google_screenshot')
-        ? $request->file('google_screenshot')->store('reviews', 'public')
-        : null;
+        $googlePath = $request->file('google_screenshot')
+            ? $request->file('google_screenshot')->move('', 'reviews')
+            : null;
 
-    $fbUrl = $fbPath ? url('/storage/' . $fbPath) : null;
-    $googleUrl = $googlePath ? url('/storage/' . $googlePath) : null;
+        $fbUrl = $fbPath ? url('public/reviews/' . $fbPath) : null;
+        $googleUrl = $googlePath ? url('public/reviews/' . $googlePath) : null;
 
         if (!$request->hasFile('fb_screenshot') && !$request->hasFile('google_screenshot')) {
         return response()->json([
@@ -102,7 +102,7 @@ public function submit(Request $request)
         public function getInterments($occupant)
             {
                 $query = "SELECT
-                bpar.`name1`,
+                -- bpar.`name1`,
                 inter.`documentno`,
                 inter.`date_interment`,
                 occ.`occupant_name` AS occupant
@@ -134,7 +134,7 @@ public function submit(Request $request)
         }
 
         // Expiration: 10 years after interment date
-        $expiryDate = Carbon::parse($intermentDate)->addDays(3);
+      $expiryDate = Carbon::parse($intermentDate)->addDays(3);
         $now = Carbon::now();
 
         if ($now->gt($expiryDate)) {
@@ -158,6 +158,58 @@ public function submit(Request $request)
 
         return response()->json($reviews, 200);
     }
+
+    public function getIntermentsCustomer_records($document_no)
+            {
+                $query = "SELECT
+                    bpar.`bpar_i_person_id`,
+                    bpar.`name1`,
+                    bpar.`name1`,
+                    inter.`documentno`,
+                    inter.`date_interment`,
+                     inter.`time_starting`,
+                    inter.`date_mass_starting_time`,
+                    occ.`occupant_name` AS occupant,
+                    info.`contact_no`
+                FROM mp_t_interment_order inter
+                JOIN mp_l_ownership ship USING (mp_l_ownership_id)
+                JOIN mp_l_preownership preown USING (mp_l_preownership_id)
+                JOIN mp_i_owner owner
+                    ON preown.`mp_i_owner_id` = owner.`mp_i_owner_id`
+                JOIN bpar_i_person bpar
+                    ON owner.`bpar_i_person_id` = bpar.`bpar_i_person_id`
+                JOIN mp_t_interment_order_occupancy occ 
+                    ON inter.`mp_t_interment_order_id` = occ.`mp_t_interment_order_id`
+                    join mp_t_interment_order_informants_data info
+                    on occ.`mp_t_interment_order_id` = info.`mp_t_interment_order_id`
+                WHERE inter.`documentno` NOT LIKE '%-CA'
+                AND inter.`documentno` NOT LIKE '%DR'
+                AND inter.`documentno` = :document_no
+                 AND occ.`mp_i_interment_vessel_id` = 3
+                ";
+
+                $getIntermentsCustomer_records = DB::connection('mysql_secondary')
+                ->select($query, ['document_no' => $document_no]);
+
+                        if (empty($getIntermentsCustomer_records)) {
+            return response()->json(['message' => 'No records found.'], 404);
+        }
+
+                // Expiration: 3 years after interment date
+     $intermentDate = $getIntermentsCustomer_records[0]->date_interment ?? null;
+        $expiryDate = Carbon::parse($intermentDate)->addDays(3);
+       $now = Carbon::now();
+
+       if ($now->gt($expiryDate)) {
+            return response()->json(['message' => 'Link expired.'], 403);
+      }
+
+
+        if (!$getIntermentsCustomer_records) {
+            return response()->json(['message' => 'Invalid record.'], 500);
+        }
+                return response()->json($getIntermentsCustomer_records);
+        }
 
 
 

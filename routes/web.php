@@ -1,7 +1,5 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Http\Controllers\Api\V1\GoogleDriveOAuthController;
+//Route::get('/oauth2callback', [GoogleDriveOAuthController::class, 'handleGoogleCallback']);

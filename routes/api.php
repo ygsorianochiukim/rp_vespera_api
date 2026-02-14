@@ -1,5 +1,10 @@
 <?php
+
+
+//use App\Http\Controllers\Api\V1\GoogleDriveOAuthController;
+use App\Http\Controllers\Api\V1\UploadIntermentSlideShowPhotoController;
 use App\Domain\UploadReview\Models\UploadReview;
+use App\Domain\UploadIntermentSlideShowPhoto\Models\UploadIntermentSlideShowPhoto;
 use App\Domain\AutomationDashboard\Models\AutomationDashboard;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AutoForfeitureController;
@@ -11,6 +16,7 @@ use App\Http\Controllers\Api\V1\IssuesController;
 use App\Http\Controllers\Api\V1\PaymentModuleController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\Api\V1\UploadReviewController;
+use App\Http\Controllers\Api\V1\UploadIntermentPhotoController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -80,10 +86,70 @@ Route::get('/checkLots/{bparId}', [PaymentModuleController::class, 'getOwnerLot'
 //UPLOAD REVIEW SAVE
 Route::post('/review', [UploadReviewController::class, 'submit']);
 //UPLOAD REVIEW FETCH
-
+// FETCH INTERMENT OCCUPANT NAME AND DATE OF INTERNMENT
 Route::get('/interments/{occupant}', [UploadReviewController::class, 'getInterments']);
 
 //FETCH REVIEWS
 Route::get('/upload-reviews/document/{document_no}',[UploadReviewController::class, 'getByDocumentNo']);
+//FETCH INTERMENT INFO
+Route::get('/intermentsReviewLink/{document_no}', [UploadReviewController::class, 'getIntermentsCustomer_records']);
+
+  
+//INTERRED PHOTO
+Route::prefix('upload-photos')->group(function () {
+     Route::post('/validate-photo', [UploadIntermentPhotoController::class, 'validatePhoto']);
+
+    // Customer interment lookup
+    Route::get(
+        '/intermentsUploadInterredPhotoLink/{document_no}',
+        [IntermentController::class, 'getIntermentsCustomer_records']
+    );
+
+    // ✅ Correct: DO NOT repeat upload-photos
+    Route::get(
+        '/by-document/{document_no}',
+        [UploadIntermentPhotoController::class, 'getByDocumentNo']
+    );
+
+    // CRUD
+    Route::post('/', [UploadIntermentPhotoController::class, 'store']);
+    Route::get('/{id}', [UploadIntermentPhotoController::class, 'edit']);
+    Route::post('/{id}', [UploadIntermentPhotoController::class, 'update']);
+    Route::delete('/{id}', [UploadIntermentPhotoController::class, 'destroy']);
+   
+});
+
+/**Route::prefix('/slideshow')->group(function () {
+    Route::get('/for-slide-show/{document_no}', [UploadIntermentSlideShowPhotoController::class, 'getIntermentsCustomerRecordsForSlideShowUploadPage']);
+    Route::post('/', [UploadIntermentSlideShowPhotoController::class, 'store']);
+    Route::get('/{document_no}', [UploadIntermentSlideShowPhotoController::class, 'show']);
+    Route::delete('/photo/{id}', [UploadIntermentSlideShowPhotoController::class, 'deletePhoto']);
+    Route::delete('/{id}', [UploadIntermentSlideShowPhotoController::class, 'destroy']);
+});
+*/
+
+
+Route::prefix('slideshow')->group(function () {
+   Route::post('/', [UploadIntermentSlideShowPhotoController::class, 'store']);
+ Route::get('{document_no}', [UploadIntermentSlideShowPhotoController::class, 'getIntermentsCustomerRecordsForSlideShowUpload']);
+ Route::get('view/{document_no}', [UploadIntermentSlideShowPhotoController::class, 'showByDocumentNo']);
+  Route::delete('{id}', [UploadIntermentSlideShowPhotoController::class, 'destroy']);
+   Route::delete('photo/{id}', [UploadIntermentSlideShowPhotoController::class, 'deletePhoto']);
+});
+
+
+
+
+
+
+//Route::get('/google/authorize', [GoogleDriveOAuthController::class, 'redirectToGoogle']);
+
+
+
+
+
+
+
+
 
 
